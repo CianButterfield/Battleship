@@ -69,35 +69,72 @@ namespace Battleship
 
             Console.ForegroundColor = ConsoleColor.Blue;
             Console.WriteLine("   0  1  2  3  4  5  6  7  8  9   X");
-            Console.WriteLine("  ==============================");
+            Console.WriteLine(" ╔══════════════════════════════╗");
             for (int y = 0; y < 10; y++)
             {
-                Console.Write("{0}|", y);
+                Console.Write(" ║");
                 for (int x = 0; x < 10; x++)
                 {
                     if (this.Ocean[x, y].Status == Point.PointStatus.Empty || this.Ocean[x, y].Status == Point.PointStatus.Ship)
                     {
-                        Console.Write("[ ]");
+                        Console.Write("╔╦╗");
                     }
                     else if (this.Ocean[x, y].Status == Point.PointStatus.Hit)
                     {
-                        Console.ForegroundColor = ConsoleColor.Black;
-                        Console.BackgroundColor = ConsoleColor.DarkRed;
-                        Console.Write("[X]");
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write("╔╦╗");
                         Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.BackgroundColor = ConsoleColor.Black;
                     }
                     else
                     {
                         Console.ForegroundColor = ConsoleColor.White;
-                        Console.BackgroundColor = ConsoleColor.DarkBlue;
-                        Console.Write("[O]");
+                        Console.Write("╔╦╗");
                         Console.ForegroundColor = ConsoleColor.Blue;
-                        Console.BackgroundColor = ConsoleColor.Black;
                     }
                 }
-                Console.Write("\n\n");
+                Console.Write("║\n{0}║", y);
+                for (int x = 0; x < 10; x++)
+                {
+                    if (this.Ocean[x, y].Status == Point.PointStatus.Empty || this.Ocean[x, y].Status == Point.PointStatus.Ship)
+                    {
+                        Console.Write("╠╬╣");
+                    }
+                    else if (this.Ocean[x, y].Status == Point.PointStatus.Hit)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write("╠╬╣");
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write("╠╬╣");
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                    }
+                }
+                Console.Write("║\n ║");
+                for (int x = 0; x < 10; x++)
+                {
+                    if (this.Ocean[x, y].Status == Point.PointStatus.Empty || this.Ocean[x, y].Status == Point.PointStatus.Ship)
+                    {
+                        Console.Write("╚╩╝");
+                    }
+                    else if (this.Ocean[x, y].Status == Point.PointStatus.Hit)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write("╚╩╝");
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                    }
+                    else
+                    {
+                        Console.ForegroundColor = ConsoleColor.White;
+                        Console.Write("╚╩╝");
+                        Console.ForegroundColor = ConsoleColor.Blue;
+                    }
+                }
+                Console.Write("║\n");
             }
+            Console.WriteLine(" ╚══════════════════════════════╝");
             Console.WriteLine("Y\n");
         }
 
@@ -117,7 +154,7 @@ namespace Battleship
         {
             //change the console windo title
             Console.Title = "BattleShip";
-            Console.SetWindowSize(35, 27);
+            Console.SetWindowSize(35, 38);
 
             while (!this.AllShipsDestroyed)
             {
@@ -175,6 +212,57 @@ namespace Battleship
             }
             DisplayOcean();
             Console.WriteLine("You Win!! It took {0} rounds", CombatRound);
+            //give the user a moment to read
+            System.Threading.Thread.Sleep(3000);
+            //add high score
+            AddHighScore(CombatRound);
+            //display highscores
+            DisplayHighScores();
+
+        }
+
+        static void AddHighScore(int playerScore)
+        {
+            Console.Clear();
+
+            //get player name for high score
+            Console.Write("Your name: "); string playerName = Console.ReadLine();
+
+            //create a gateway to the database
+            CianEntities db = new CianEntities();
+
+            //create a new high score object
+            // fill it with our user's data
+            HighScore newHighScore = new HighScore();
+            newHighScore.DateCreated = DateTime.Now;
+            newHighScore.Game = "Battleship";
+            newHighScore.Name = playerName;
+            newHighScore.Score = playerScore;
+
+            //add it to the database
+            db.HighScores.Add(newHighScore);
+
+            //save our changes
+            db.SaveChanges();
+        }
+
+        static void DisplayHighScores()
+        {
+            //clear the console
+            Console.Clear();
+            Console.Title = "ΦBattleship High ScoresΦ";
+            Console.WriteLine("Battleship High Scores");
+            Console.WriteLine("≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡≡");
+
+            //create a new connection to the database
+            CianEntities db = new CianEntities();
+            //get the high score list
+            List<HighScore> highScoreList = db.HighScores.Where(x => x.Game == "Battleship").OrderBy(x => x.Score).Take(10).ToList();
+
+            foreach (HighScore highScore in highScoreList)
+            {
+                Console.WriteLine("{0}. {1} - {2}", highScoreList.IndexOf(highScore) + 1, highScore.Name, highScore.Score);
+            }
             Console.ReadKey();
         }
     }
